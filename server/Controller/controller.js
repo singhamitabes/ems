@@ -67,41 +67,41 @@ const getEmployee = async (req, res) => {
 };
 
 const adminCount = async (req, res) => {
-  try {
-    const count = await db.collection("users").countDocuments();
-    res.json({ admin: count });
-  } catch (err) {
-    console.error("Error in running query:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+  // try {
+  //   const count = await test.adminlists("users").countDocuments();
+  //   res.json({ admin: count });
+  // } catch (err) {
+  //   console.error("Error in running query:", err);
+  //   res.status(500).json({ error: "Internal Server Error" });
+  // }
 };
 
 
 const employeeCount = async (req, res) => {
-  try {
-    const count = await db.collection(collectionName).countDocuments();
-    res.json({ employee: count });
-  } catch (err) {
-    console.error('Error in running query:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  // try {
+  //   const count = await db.collection(collectionName).countDocuments();
+  //   res.json({ employee: count });
+  // } catch (err) {
+  //   console.error('Error in running query:', err);
+  //   res.status(500).json({ error: 'Internal Server Error' });
+  // }
 };
 
 const salary = async (req, res) => {
-  try {
-    const result = await db.collection(collectionName).aggregate([
-      { $group: { _id: null, sumOfSalary: { $sum: "$salary" } } }
-    ]).toArray();
+  // try {
+  //   const result = await db.collection(collectionName).aggregate([
+  //     { $group: { _id: null, sumOfSalary: { $sum: "$salary" } } }
+  //   ]).toArray();
 
-    if (result.length === 0) {
-      return res.json({ sumOfSalary: 0 }); // Return 0 if there are no documents
-    }
+  //   if (result.length === 0) {
+  //     return res.json({ sumOfSalary: 0 }); // Return 0 if there are no documents
+  //   }
 
-    return res.json(result[0]);
-  } catch (err) {
-    console.error("Error in running query:", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+  //   return res.json(result[0]);
+  // } catch (err) {
+  //   console.error("Error in running query:", err);
+  //   res.status(500).json({ error: "Internal Server Error" });
+  // }
 };
 
 
@@ -110,9 +110,8 @@ const employeeLogin = async (req, res) => {
     const employee = await EmployeeList.findOne({ email: req.body.email });
 
     if (!employee) {
-      return res.json({ Status: 'Error', Error: 'Wrong Email or Password' });
+      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
     }
-
     const passwordMatch = await bcrypt.compare(
       req.body.password.toString(),
       employee.password
@@ -120,19 +119,23 @@ const employeeLogin = async (req, res) => {
 
     if (passwordMatch) {
       const id = employee._id.toString();
-      const token = jwt.sign({ role: 'employee', d: id }, 'jwt-secret-key', {
+      const token = jwt.sign({ role: 'employee', d: id }, 'JSONWEBTOKEN', {
         expiresIn: '1d',
       });
+      
+      // Set the token as a cookie
+      res.cookie('token', token, { httpOnly: true });
 
-      res.cookie('token', token);
       return res.json({ Status: 'Success', id });
     } else {
-      return res.json({ Status: 'Error', Error: 'Wrong Email or Password' });
+      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
     }
   } catch (err) {
-    return res.json({ Status: 'Error', Error: 'Error in running query' });
+    return res.status(500).json({ Status: 'Error', Error: 'Error in running query' });
   }
 }
+
+
 const getEmployeeDetails = (req, res) => {
   const id = req.params.id;
   const db = client.db(test);
@@ -148,6 +151,7 @@ const getEmployeeDetails = (req, res) => {
   });
 }
 const logout = async (req, res) => {
+  console.log(req.cookies)
   const { token } = req.cookies;
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -176,7 +180,7 @@ const adminLogin = (req, res) => {
     if (result) {
       const id = result._id.toString();
       // Replace 'your-secret-key' with your actual JWT secret key
-      const token = jwt.sign({ role: "admin" }, "Json-webtoken-key", { expiresIn: '1d' });
+      const token = jwt.sign({ role: "admin" }, "JSONWEBTOKEN", { expiresIn: '1d' });
       res.cookie('token', token);
       return res.json({ Status: "Success" });
     } else {
@@ -208,7 +212,7 @@ const verifyUser = (req, res, next) => {
   if (!token) {
     return res.status(401).json({ Error: "You are not authenticated" });
   } else {
-    jwt.verify(token, "jwt-secret-key", (err, decoded) => {
+    jwt.verify(token, "JSONWEBTOKEN", (err, decoded) => {
       if (err) return res.status(401).json({ Error: "Token is invalid" });
       req.role = decoded.role;
       req.id = decoded.id;

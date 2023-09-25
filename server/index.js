@@ -4,6 +4,7 @@ const dbConnect = require("./DbConnect/dbConnect")
 const bodyParser = require("body-parser")
 const multer = require("multer")
 const path = require("path")
+const cookieParser = require('cookie-parser');
 
 
 dbConnect()
@@ -11,6 +12,7 @@ dbConnect()
 const app = express()
 
 app.use(express.json());
+app.use(cookieParser());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
