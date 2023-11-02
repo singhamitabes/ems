@@ -1,7 +1,7 @@
 const adminList = require('../Model/admin')
 const EmployeeList = require('../Model/employee')
 const jwt = require('jsonwebtoken');
-const bcrypt=require("bcrypt");
+const bcrypt = require("bcrypt");
 
 
 const createEmpData = async (req, res) => {
@@ -17,7 +17,7 @@ const createEmpData = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new employee record
-    const empRec = await EmployeeList .create({
+    const empRec = await EmployeeList.create({
       name: name,
       email: email,
       password: hashedPassword,
@@ -31,7 +31,7 @@ const createEmpData = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}; 
+};
 
 const createAdmData = async (req, res) => {
   const { name, email, password, address, salary, image } = req.body;
@@ -67,114 +67,53 @@ const getEmployee = async (req, res) => {
 };
 
 const adminCount = async (req, res) => {
-  // try {
-  //   const count = await test.adminlists("users").countDocuments();
-  //   res.json({ admin: count });
-  // } catch (err) {
-  //   console.error("Error in running query:", err);
-  //   res.status(500).json({ error: "Internal Server Error" });
-  // }
+  try {
+    const count = await EmployeeList.countDocuments({ isAdmin: true }); // Modify the query as per your schema
+    res.json({ admin: count });
+  } catch (error) {
+    console.error('Error in running query:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 
 const employeeCount = async (req, res) => {
-  // try {
-  //   const count = await db.collection(collectionName).countDocuments();
-  //   res.json({ employee: count });
-  // } catch (err) {
-  //   console.error('Error in running query:', err);
-  //   res.status(500).json({ error: 'Internal Server Error' });
-  // }
-};
+  try {
+    const totalCount = await EmployeeList.countDocuments();
+    res.json({ totalDocuments: totalCount });
+  } catch (error) {
+    console.error('Error counting documents:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
 const salary = async (req, res) => {
-  // try {
-  //   const result = await db.collection(collectionName).aggregate([
-  //     { $group: { _id: null, sumOfSalary: { $sum: "$salary" } } }
-  //   ]).toArray();
-
-  //   if (result.length === 0) {
-  //     return res.json({ sumOfSalary: 0 }); // Return 0 if there are no documents
-  //   }
-
-  //   return res.json(result[0]);
-  // } catch (err) {
-  //   console.error("Error in running query:", err);
-  //   res.status(500).json({ error: "Internal Server Error" });
-  // }
+  try {
+    const pipeline = [
+      {
+        $group: {
+          _id: null,
+          totalSalary: { $sum: '$salary' },
+        },
+      },
+    ];
+    const result = await EmployeeList.aggregate(pipeline);
+    console.log(result)
+    if (result.length === 0) {
+      return res.json({ totalSalary: 0 });
+    }
+    res.json({ totalSalary: result[0].totalSalary });
+  } catch (error) {
+    console.error('Error calculating total salary:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
-
-const employeeLogin = async (req, res) => {
-  try {
-    const employee = await EmployeeList.findOne({ email: req.body.email });
-
-    if (!employee) {
-      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
-    }
-    const passwordMatch = await bcrypt.compare(
-      req.body.password.toString(),
-      employee.password
-    );
-
-    if (passwordMatch) {
-      const id = employee._id.toString();
-      const token = jwt.sign({ role: 'employee', d: id }, 'JSONWEBTOKEN', {
-        expiresIn: '1d',
-      });
-      
-      // Set the token as a cookie
-      res.cookie('token', token, { httpOnly: true });
-
-      return res.json({ Status: 'Success', id });
-    } else {
-      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
-    }
-  } catch (err) {
-    return res.status(500).json({ Status: 'Error', Error: 'Error in running query' });
-  }
-}
-
-
-const getEmployeeDetails = (req, res) => {
-  const id = req.params.id;
-  const db = client.db(test);
-
-  db.collection(employeelists).findOne({ _id: new ObjectID(id) }, (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: "Get employee error in MongoDB" });
-    }
-    if (!result) {
-      return res.status(404).json({ error: "Employee not found" });
-    }
-    res.status(200).json({ status: "Success", result });
-  });
-}
-const logout = async (req, res) => {
-  console.log(req.cookies)
-  const { token } = req.cookies;
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  try {
-    // Find the user by their token and remove the token from the database
-    await User.findOneAndUpdate({ token }, { token: null });
-
-    // Clear the token cookie on the client-side
-    res.clearCookie('token');
-
-    return res.json({ Status: 'Success' });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
 
 const adminLogin = (req, res) => {
   const { email, password } = req.body;
 
-  // Find the user in the database
+  // Find the Admin in the database
   adminList.findOne({ email, password }, (err, result) => {
     if (err) return res.status(500).json({ Status: "Error", Error: "Error in running query" });
     if (result) {
@@ -188,27 +127,14 @@ const adminLogin = (req, res) => {
     }
   })
 }
-// const login = async (req, res) => {
-//   const { email, password } = req.body
-//   console.log(email, password)
-//   try {
-//     const existingUser = await EmployeeList.findOne({ email: email })
-//     if (!existingUser) {
-//       return res.status(404).json({ status: "error", Error: "Wrong Email or Password" })
-//     }
-//     if (existingUser && existingUser.password === password) {
-//       return res.status(200).json({ status: "Success" });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({ status: "error", Error: "An error occurred" });
-//   }
-// }
+
 const dashboard = (req, res) => {
   return res.status(200).json({ Status: "Success", role: req.role, id: req.id });
 }
+
+
 const verifyUser = (req, res, next) => {
-  const token = req.cookies.token;
+  const token = req.headers.authorization
   if (!token) {
     return res.status(401).json({ Error: "You are not authenticated" });
   } else {
@@ -221,21 +147,59 @@ const verifyUser = (req, res, next) => {
   }
 };
 
+const employeeLogin = async (req, res) => {
+  try {
+    const employee = await EmployeeList.findOne({ email: req.body.email });
+    if (!employee) {
+      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
+    }
+    const passwordMatch = await bcrypt.compare(
+      req.body.password.toString(),
+      employee.password
+    );
+    if (passwordMatch) {
+      const id = employee._id.toString();
+      const token = jwt.sign({ email: employee.email, address: employee.address }, 'JSONWEBTOKEN', {
+        expiresIn: '1d',
+      });
+      return res.json({ Status: 'Success', id , token });
+      
+    } else {
+      return res.status(401).json({ Status: 'Error', Error: 'Wrong Email or Password' });
+    }
+  } catch (err) {
+    return res.status(500).json({ Status: 'Error', Error: 'Error in running query' });
+  }
+}
+
+// to Find data of particular ID of employee
 const getEmpDetailsId = async (req, res) => {
   const id = req.params.id;
-  
   try {
     const result = await EmployeeList.findById(id);
-    
     if (!result) {
       return res.status(404).json({ Error: 'Employee not found' });
-    } 
+    }
     return res.json({ Status: 'Success', Result: result });
   } catch (err) {
     return res.status(500).json({ Error: 'Get employee error in MongoDB' });
   }
 }
+//Employee LogOut
+const logout = async (req, res) => {
+  const token = req.headers.authorization
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    return res.json({ Status: 'Success', Message: 'Logout successful' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
-module.exports = {createEmpData, getEmployee, adminCount, employeeCount, salary, createAdmData, employeeLogin, getEmployeeDetails,logout,adminLogin ,dashboard,verifyUser,getEmpDetailsId}
+
+module.exports = { createEmpData, getEmployee, adminCount, employeeCount, salary, createAdmData, employeeLogin, logout, adminLogin, dashboard, verifyUser, getEmpDetailsId }
 
 
