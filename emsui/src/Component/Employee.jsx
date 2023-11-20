@@ -5,17 +5,17 @@ import { Link } from 'react-router-dom'
 function Employee() {
   const [data, setData] = useState([])
 
-  useEffect(()=> {
+  useEffect(() => {
     axios.get('http://localhost:4000/ems/getemployee')
-    .then(res => {
-      console.log(res)
-      if(res.data.Status === "Success") {
-        setData(res.data.Result);
-      } else {
-        alert("Error")
-      }
-    })
-    .catch(err => console.log(err));
+      .then(res => {
+        console.log(res)
+        if (res.data.Status === "Success") {
+          setData(res.data.Result);
+        } else {
+          alert("Error")
+        }
+      })
+      .catch(err => console.log(err));
   }, [])
 
   // const handleDelete = (id) => {
@@ -43,6 +43,7 @@ function Employee() {
               <th>Name</th>
               <th>Image</th>
               <th>Email</th>
+              <th>Role</th>
               <th>Address</th>
               <th>Salary</th>
               <th>Action</th>
@@ -51,17 +52,18 @@ function Employee() {
           <tbody>
             {data.map((employee, index) => {
               return <tr key={index}>
-                  <td>{employee.name}</td>
-                  <td>{
-                    <img src={`http://localhost:4000/images/`+employee.image} alt="" className='employee_image'/>
-                    }</td>
-                  <td>{employee.email}</td>
-                  <td>{employee.address}</td>
-                  <td>{employee.salary}</td>
-                  <td>
-                    {/* <Link to={`/employeeEdit/`+employee.id} className='btn btn-primary btn-sm me-2'>edit</Link> */}
-                    {/* <button onClick={e => handleDelete(employee.id)} className='btn btn-sm btn-danger'>delete</button> */}
-                  </td>
+                <td>{employee.name}</td>
+                <td>{
+                  <img src={`http://localhost:4000/` + employee.image} alt="" className='employee_image' />
+                }</td>
+                <td>{employee.email}</td>
+                <td>{employee.role}</td>
+                <td>{employee.address}</td>
+                <td>{employee.salary}</td>
+                <td>
+                  {/* <Link to={`/employeeEdit/`+employee.id} className='btn btn-primary btn-sm me-2'>edit</Link> */}
+                  {/* <button onClick={e => handleDelete(employee.id)} className='btn btn-sm btn-danger'>delete</button> */}
+                </td>
               </tr>
             })}
           </tbody>

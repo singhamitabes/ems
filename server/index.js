@@ -1,16 +1,16 @@
 const express = require("express")
+var cors = require('cors')
 
 const dbConnect = require("./DbConnect/dbConnect")
-const bodyParser = require("body-parser")
-const multer = require("multer")
-const path = require("path")
-const cookieParser = require('cookie-parser');
 
 
 dbConnect()
-
 const app = express()
-app.use(cookieParser());
+// Serve static files from the 'public' directory
+app.use('/public', express.static('public'));
+
+
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))                  
 app.use((req, res, next) => {
@@ -22,4 +22,4 @@ app.use((req, res, next) => {
 
 app.use("/ems", require('./Route/route') )
 
-app.listen("4000",()=>console.log("server is start"))
+app.listen(4000,()=>console.log("server is start"))

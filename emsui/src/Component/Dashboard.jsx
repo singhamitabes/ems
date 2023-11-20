@@ -1,32 +1,29 @@
 import React, { useEffect } from 'react'
 // import 'bootstrap-icons/font/bootstrap-icons.css'
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 
 function Dashboard() {
 	const navigate = useNavigate()
-	// axios.defaults.withCredentials = true;
-	useEffect(()=>{
-		axios.get('http://localhost:4000/ems/dashboard')
-		.then(res => {
-			if(res.data.Status === "Success") {
-				if(res.data.role === "admin") {
-					navigate('/');
-				} else {
-					const id = res.data.id;
-					navigate('/employeedetail/'+id)
-				}
-			} else {
-				navigate('/start')
-			}
-		})
-	}, [])
-
-	const handleLogout = () => {
-		axios.get('http://localhost:4000/ems/logout')
-		.then(res => {
+	useEffect(() => {
+		const token = localStorage.getItem('token');
+		if (!token) {
 			navigate('/start')
-		}).catch(err => console.log(err));
+		}
+		else
+		axios.get('http://localhost:4000/ems/dashboard', { headers: { Authorization: token } })
+			.then(res => {
+				if (res.data.Status === "Success") {
+					if (res.data.role === "Admin") {
+						navigate('/');
+					}
+				}
+			})
+	}, [])
+	const handleLogout = () => {
+		localStorage.removeItem("token")
+		navigate('/start')
+		alert("You are LogOut")
 	}
 	return (
 		<div className="container-fluid">
@@ -46,8 +43,8 @@ function Dashboard() {
 									<i className="fs-4 bi-people"></i> <span className="ms-1 d-none d-sm-inline">Manage Employees</span> </Link>
 							</li>
 							<li>
-								<Link to="profile" className="nav-link px-0 align-middle text-white">
-									<i className="fs-4 bi-person"></i> <span className="ms-1 d-none d-sm-inline">Profile</span></Link>
+								<Link to="/profile" className="nav-link px-0 align-middle text-white">
+									<i className="fs-4 bi-people"></i> <span className="ms-1 d-none d-sm-inline">Profile</span> </Link>
 							</li>
 							<li onClick={handleLogout}>
 								<a href="#" className="nav-link px-0 align-middle text-white">
@@ -56,9 +53,9 @@ function Dashboard() {
 						</ul>
 					</div>
 				</div>
-				<div class="col p-0 m-0">
+				<div className="col p-0 m-0">
 					<div className='p-2 d-flex justify-content-center shadow'>
-						<h4>Employee Management System</h4>						
+						<h4>Employee Management System</h4>
 					</div>
 					<Outlet />
 				</div>

@@ -4,28 +4,30 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 function EmployeeLogin() {
-
     const [values, setValues] = useState({
         email: '',
         password: ''
     })
-   
-    const navigate = useNavigate()
-   
-    const [error, setError] = useState('')
 
+    const navigate = useNavigate()
+    const [error, setError] = useState('')
     const handleSubmit = (event) => {
         event.preventDefault();
         axios.post('http://localhost:4000/ems/employeelogin', values)
-        .then(res => {
-            if(res.data.Status === 'Success') {
-                const id = res.data.id;
-                navigate('/employeedetail/'+id);
-            } else {
-                setError(res.data.Error);
-            }
-        })
-        .catch(err => console.log(err));
+            .then(res => {
+                if (res.data.Status === 'Success') {
+                    localStorage.setItem("token", res.data.token);
+                    const id = res.data.id;
+                    navigate('/employeedetail/' + id);
+                } else {
+                    setError(res.data.Error);
+                }
+            })
+            .catch((err) => {
+                setError(err.response.data.Error)
+                console.log(err.response.data.Error)
+                console.error('An error occurred while logging in:', err);
+            });
     }
 
     return (
@@ -38,13 +40,13 @@ function EmployeeLogin() {
                 <form onSubmit={handleSubmit}>
                     <div className='mb-3'>
                         <label htmlFor="email"><strong>Email</strong></label>
-                        <input type="email" placeholder='Enter Email' name='email' 
-                          onChange={e => setValues({...values, email: e.target.value})} className='form-control rounded-0' autoComplete='off'/>
+                        <input type="email" placeholder='Enter Email' name='email'
+                            onChange={e => setValues({ ...values, email: e.target.value })} className='form-control rounded-0' autoComplete='off' />
                     </div>
                     <div className='mb-3'>
                         <label htmlFor="password"><strong>Password</strong></label>
                         <input type="password" placeholder='Enter Password' name='password'
-                          onChange={e => setValues({...values, password: e.target.value})} className='form-control rounded-0' />
+                            onChange={e => setValues({ ...values, password: e.target.value })} className='form-control rounded-0' />
                     </div>
                     <button type='submit' className='btn btn-success w-100 rounded-0'> Log in</button>
                     <p>You are agree to our terms and policies</p>
@@ -53,5 +55,4 @@ function EmployeeLogin() {
         </div>
     )
 }
-
 export default EmployeeLogin

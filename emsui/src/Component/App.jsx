@@ -18,16 +18,18 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Dashboard />}>
-          <Route path='' element={<Home />}/>
-          <Route path='/employee' element={<Employee />}/>
-          <Route path='/profile' element={<Profile />}/>
-          <Route path='/create' element={<AddEmployee />}/>
-          <Route path='/employeeEdit/:id' element={<EditEmployee />}/>
+          <Route path='' element={<Home />} />
+          <Route path='/employee' element={<Employee />} />
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/create' element={<AddEmployee />} />
+          <Route path='/employeeEdit/:id' element={<EditEmployee />} />
         </Route>
-        <Route path='/login' element={<Login />}/>
-        <Route path='/start' element={<Start />}/>
-        <Route path='/employeeLogin' element={<EmployeeLogin />}/>
-        <Route path='/employeedetail/:id' element={<EmployeeDetail />}/>
+        <Route path='/login' element={<Login />} />
+
+        <Route path='/start' element={<Start />} />
+        <Route path='/employeeLogin' element={<EmployeeLogin />} />
+        <Route path='/employeedetail/:id' element={<EmployeeDetail />} />
+        <Route path='/editemployee/:id' element={<EditEmployee />} />
       </Routes>
     </BrowserRouter>
   )
